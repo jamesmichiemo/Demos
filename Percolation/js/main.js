@@ -1,12 +1,19 @@
+/*
+    Percolation
+*/
+
 (function (global) {
     
     'use strict';
     
-    global.console.log("I ran.");
-    
     var Color = {},
         Grid = {},
-        Tile = {};
+        Tile = function (x, y, width, height) {
+            this.x = x;
+            this.y = y;
+            this.width = width;
+            this.height = height;
+        };
     
     Color.prototype = {
         black: '#000000',
@@ -32,38 +39,49 @@
             this.cols = cols;
             this.tileCount = rows * cols;
             
-            var grid = [], r, c;
+            var grid = [], r, c, x, y, w, h;
             
             for (r = 0; r < rows; r += 1) {
                 grid[r] = [];
                 for (c = 0; c < cols; c += 1) {
-                    grid[r][c] = new Tile();
+                    x = 0;
+                    y = 0;
+                    grid[r][c] = new Tile(x, y, w, h);
                 }
             }
+            
+            return grid;
         }
     };
     
+    /*
+       The Tile object is the basic unit of the grid. 
+    */
     Tile.prototype = {
         x: 0,
         y: 0,
         width: 0,
         height: 0,
-        isFilled: false,
-        isEmpty: false,
-        color: Color.black
+        isFilled: false,    // Is it filled with water?
+        isEmpty: false,     // Is it still blocked?
+        color: Color.black  // black = blocked, blue = filled, white = empty
     };
     
     function percolationApp() {
         
-//        var DOM = global.document,
-//            stage = DOM.getElementById("percolation-demo"),
-//            graphics = stage.getContext("2d");
+        var DOM = global.document,
+            stage = DOM.getElementById("percolation-demo"),
+            graphics = stage.getContext("2d"),
+            grid = new Grid();
         
     }
     
+    /*
+        Wait for the browser window to load everything.   
+    */
     function onLoad() {
         percolationApp();
     }
-    global.addEventListener('load', onLoad, false);
+    global.window.addEventListener('load', onLoad, false);
     
 }(this));
