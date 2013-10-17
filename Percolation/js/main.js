@@ -31,9 +31,9 @@
         The Grid serves as the container for all the tiles.
     */
     function Grid(rows, cols) {
-        if (typeof rows !== Number || rows <= 0) {
+        if (typeof rows === Number || rows <= 0) {
             return;
-        } else if (typeof cols !== Number || cols <= 0) {
+        } else if (typeof cols === Number || cols <= 0) {
             return;
         }
         
@@ -53,6 +53,8 @@
         }
     }
     Grid.prototype = {
+        rows: 0,
+        cols: 0,
         tiles: [],
         tileCount: 0,
         tilesRemoved: 0,
@@ -69,7 +71,7 @@
             graphics = stage.getContext("2d"),
             grid = new Grid(10, 10);
         
-        
+        global.console.log(grid);
     }
     
     /*
