@@ -19,31 +19,36 @@
        The Tile object is the basic unit of the grid. 
     */
     function Tile(x, y, width, height) {
+        var isFilled = false,       // Is it filled with water?
+            isEmpty = false,        // Is it empty?
+            color = Color.black,    // black = blocked, blue = filled, white = empty
+            state = 'blocked';      // Keep track of the current state.
+        
         this.x = x;
         this.y = y;
         this.width = width;
         this.height = height;
     }
     Tile.prototype = (function () {
-        var isFilled = false,       // Is it filled with water?
-            isEmpty = false,        // Is it empty?
-            color = Color.black,    // black = blocked, blue = filled, white = empty
-            state = 'blocked';      // Keep track of the current state.
-            
         return {
             fillTile: function () {
-                isFilled = true;
-                isEmpty = false;
-                color = Color.blue;
-                state = 'filled';
+                this.isFilled = true;
+                this.isEmpty = false;
+                this.color = Color.blue;
+                this.state = 'filled';
             },
             pullTile: function () {
-                isEmpty = true;
-                color = Color.white;
-                state = 'empty';
+                this.isEmpty = true;
+                this.color = Color.white;
+                this.state = 'empty';
             },
             getState: function () {
-                return state;
+                return this.state;
+            },
+            draw: function (context) {
+                context.fillStyle = this.color;
+                context.fillRect(this.x, this.y, this.width, this.height);
+                context.strokeRect(this.x, this.y, this.width, this.height);
             }
         };
     }());
@@ -80,9 +85,24 @@
                 this.tiles[r][c] = new Tile(x, y, w, h);
             }
         }
-        
-        
     }
+    Grid.prototype = {
+        /*
+            Check if there are any filled tiles in the last row.
+        */
+        checkPercolation: function () {
+            var r = this.tiles.length - 1,
+                c = this.tiles[r].length - 1;
+            
+            for (c; c >= 0; c -= 1) {
+                if (this.tiles[r][c].getState() === 'filled') {
+                    return true;
+                }
+            }
+            
+            return false;
+        }
+    };
     
     /*
         Use the canvas element to display the Percolation.
@@ -90,11 +110,10 @@
     function percolationApp() {
         
         var DOM = global.document,
-            stage = DOM.getElementById("percolation-demo"),
-            graphics = stage.getContext("2d"),
+            canvas = DOM.getElementById("percolation-demo"),
+            context = canvas.getContext("2d"),
             grid = new Grid(10, 10);
         
-        global.console.log(grid);
     }
     
     /*
