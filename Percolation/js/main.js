@@ -74,16 +74,17 @@
             c,
             x = 0,
             y = 0,
-            w,
-            h;
+            w = 20,
+            h = 20;
         
         for (r = 0; r < rows; r += 1) {
             this.tiles[r] = [];
             for (c = 0; c < cols; c += 1) {
-//                x = 0;
-//                y = 0;
                 this.tiles[r][c] = new Tile(x, y, w, h);
+                x += 20;
             }
+            x = 0;
+            y += 20;
         }
     }
     Grid.prototype = {
@@ -112,8 +113,36 @@
         var DOM = global.document,
             canvas = DOM.getElementById("percolation-demo"),
             context = canvas.getContext("2d"),
-            grid = new Grid(10, 10);
+            grid = new Grid(10, 5);
         
+        canvas.width = global.window.outerWidth;
+        canvas.height = global.window.outerHeight;
+        
+        function update() {
+            var r,
+                c,
+                rRow = Math.floor(Math.random() * grid.rows),
+                rCol = Math.floor(Math.random() * grid.cols),
+                currTile = grid.tiles[rRow][rCol];
+            
+            if (currTile.getState() === 'blocked') {
+                currTile.pullTile();
+            }
+            
+            function render() {
+                for (r = 0; r < grid.rows; r += 1) {
+                    for (c = 0; c < grid.cols; c += 1) {
+                        grid.tiles[r][c].draw(context);
+                    }
+                }
+            }
+            
+            render();
+//            global.console.log();
+        }
+        
+        global.window.setInterval(update, 10);
+//        global.window.clearInterval(update);
     }
     
     /*
