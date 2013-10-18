@@ -56,39 +56,39 @@
     */
     function Grid(rows, cols) {
         
-        if (typeof rows === Number || rows <= 0) {
-            return;
-        } else if (typeof cols === Number || cols <= 0) {
-            return;
-        }
-        
         var r, c,
             x = 0,
             y = 0,
             w = 20,
             h = 20,
-            tiles = [],
-            tileCount = rows * cols,
+            rowCount = rows,
+            colCount = cols,
             generateTiles = function (rows, cols) {
+                var grid = [];
                 for (r = 0; r < rows; r += 1) {
-                    tiles[r] = [];
+                    grid[r] = [];
                     for (c = 0; c < cols; c += 1) {
-                        tiles[r][c] = new Tile(x, y, w, h);
+                        grid[r][c] = new Tile(x, y, w, h);
                         x += 20;
                     }
                     x = 0;
                     y += 20;
                 }
+                return grid;
+            },
+            tiles = generateTiles(rows, cols),
+            tileCount = rows * cols,
+            tilesRemoved = 0,
+            onTileRemove = function () {
+                tilesRemoved += 1;
             };
-        
-        generateTiles(rows, cols);
         
         return {
             getRowCount: function () {
-                return rows;
+                return rowCount;
             },
             getColCount: function () {
-                return cols;
+                return colCount;
             },
             getTiles: function () {
                 return tiles;
@@ -98,26 +98,25 @@
             },
             getTileCount: function () {
                 return tileCount;
+            },
+            removeTile: function (tile) {
+                tile.pullTile();
+                tilesRemoved += 1;
+            },
+            traverse: function () {
+                for (r = 0; r < rowCount; r += 1) {
+                    for (c = 0; c < colCount; c += 1) {
+                        var tile = tiles[r][c],
+                            state = tile.getState();
+                        
+                        if (state === 'empty' && r === 0) {
+                            tile.fillTile();
+                        }
+                    }
+                }
             }
         };
     }
-    Grid.prototype = {
-        /*
-            Check if there are any filled tiles in the last row.
-        */
-        checkPercolation: function () {
-            var r = this.rows - 1,
-                c = this.cols;
-            
-            for (c; c >= 0; c -= 1) {
-                if (this.tiles[r][c].getState() === 'filled') {
-                    return true;
-                }
-            }
-            
-            return false;
-        }
-    };
     
     /*
         Use the canvas element to display the Percolation.
@@ -127,7 +126,7 @@
         var DOM = global.document,
             canvas = DOM.getElementById("percolation-demo"),
             context = canvas.getContext("2d"),
-            grid = new Grid(10, 5);
+            grid = new Grid(5, 5);
         
         canvas.width = global.window.outerWidth;
         canvas.height = global.window.outerHeight;
@@ -140,10 +139,9 @@
                 tiles = grid.getTiles(),
                 currTile = tiles[rRow][rCol];
             
-            global.console.log(currTile.getState());
-            
             if (currTile.getState() === 'blocked') {
-                currTile.pullTile();
+                grid.removeTile(currTile);
+                grid.traverse();
             }
             
             function render() {
@@ -160,8 +158,7 @@
             render();
         }
         
-        global.window.setInterval(update, 1000);
-//        global.window.clearInterval(update);
+        global.window.setInterval(update, 100);
     }
     
     /*
