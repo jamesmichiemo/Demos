@@ -22,36 +22,34 @@
         var isFilled = false,       // Is it filled with water?
             isEmpty = false,        // Is it empty?
             color = Color.black,    // black = blocked, blue = filled, white = empty
-            state = 'blocked';      // Keep track of the current state.
+            state = 'blocked';      // Current state of the tile.
         
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-    }
-    Tile.prototype = (function () {
         return {
+            x: x,
+            y: y,
+            width: width,
+            height: height,
             fillTile: function () {
-                this.isFilled = true;
-                this.isEmpty = false;
-                this.color = Color.blue;
-                this.state = 'filled';
+                isFilled = true;
+                isEmpty = false;
+                color = Color.blue;
+                state = 'filled';
             },
             pullTile: function () {
-                this.isEmpty = true;
-                this.color = Color.white;
-                this.state = 'empty';
-            },
-            getState: function () {
-                return this.state;
+                isEmpty = true;
+                color = Color.white;
+                state = 'empty';
             },
             draw: function (context) {
-                context.fillStyle = this.color;
-                context.fillRect(this.x, this.y, this.width, this.height);
-                context.strokeRect(this.x, this.y, this.width, this.height);
+                context.fillStyle = color;
+                context.fillRect(x, y, width, height);
+                context.strokeRect(x, y, width, height);
+            },
+            getState: function () {
+                return state;
             }
         };
-    }());
+    }
     
     /*
         The Grid serves as the container for all the tiles.
@@ -64,36 +62,52 @@
             return;
         }
         
-        this.rows = rows;
-        this.cols = cols;
-        this.tileCount = rows * cols;
-        this.tilesRemoved = 0;
-        this.tiles = [];
-        
-        var r,
-            c,
+        var r, c,
             x = 0,
             y = 0,
             w = 20,
-            h = 20;
+            h = 20,
+            tiles = [],
+            tileCount = rows * cols,
+            generateTiles = function (rows, cols) {
+                for (r = 0; r < rows; r += 1) {
+                    tiles[r] = [];
+                    for (c = 0; c < cols; c += 1) {
+                        tiles[r][c] = new Tile(x, y, w, h);
+                        x += 20;
+                    }
+                    x = 0;
+                    y += 20;
+                }
+            };
         
-        for (r = 0; r < rows; r += 1) {
-            this.tiles[r] = [];
-            for (c = 0; c < cols; c += 1) {
-                this.tiles[r][c] = new Tile(x, y, w, h);
-                x += 20;
+        generateTiles(rows, cols);
+        
+        return {
+            getRowCount: function () {
+                return rows;
+            },
+            getColCount: function () {
+                return cols;
+            },
+            getTiles: function () {
+                return tiles;
+            },
+            getTile: function (row, col) {
+                return tiles[row][col];
+            },
+            getTileCount: function () {
+                return tileCount;
             }
-            x = 0;
-            y += 20;
-        }
+        };
     }
     Grid.prototype = {
         /*
             Check if there are any filled tiles in the last row.
         */
         checkPercolation: function () {
-            var r = this.tiles.length - 1,
-                c = this.tiles[r].length - 1;
+            var r = this.rows - 1,
+                c = this.cols;
             
             for (c; c >= 0; c -= 1) {
                 if (this.tiles[r][c].getState() === 'filled') {
@@ -119,29 +133,34 @@
         canvas.height = global.window.outerHeight;
         
         function update() {
-            var r,
-                c,
-                rRow = Math.floor(Math.random() * grid.rows),
-                rCol = Math.floor(Math.random() * grid.cols),
-                currTile = grid.tiles[rRow][rCol];
+            var rows = grid.getRowCount(),
+                cols = grid.getColCount(),
+                rRow = Math.floor(Math.random() * rows),
+                rCol = Math.floor(Math.random() * cols),
+                tiles = grid.getTiles(),
+                currTile = tiles[rRow][rCol];
+            
+            global.console.log(currTile.getState());
             
             if (currTile.getState() === 'blocked') {
                 currTile.pullTile();
             }
             
             function render() {
-                for (r = 0; r < grid.rows; r += 1) {
-                    for (c = 0; c < grid.cols; c += 1) {
-                        grid.tiles[r][c].draw(context);
+                var r,
+                    c;
+                
+                for (r = 0; r < rows; r += 1) {
+                    for (c = 0; c < cols; c += 1) {
+                        tiles[r][c].draw(context);
                     }
                 }
             }
             
             render();
-//            global.console.log();
         }
         
-        global.window.setInterval(update, 10);
+        global.window.setInterval(update, 1000);
 //        global.window.clearInterval(update);
     }
     
