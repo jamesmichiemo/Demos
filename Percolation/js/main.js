@@ -18,17 +18,19 @@
     /*
        The Tile object is the basic unit of the grid. 
     */
-    function Tile(x, y, width, height) {
-        var isFilled = false,       // Is it filled with water?
+    function Tile(xPos, yPos, width, height) {
+        var x = xPos,
+            y = yPos,
+            w = width,
+            h = height,
+            isFilled = false,       // Is it filled with water?
             isEmpty = false,        // Is it empty?
+            isTop = false,
             color = Color.black,    // black = blocked, blue = filled, white = empty
-            state = 'blocked';      // Current state of the tile.
+            state = 'blocked',      // Current state of the tile.
+            links = [];             // Links to other tiles for recursion.  
         
         return {
-            x: x,
-            y: y,
-            width: width,
-            height: height,
             fillTile: function () {
                 isFilled = true;
                 isEmpty = false;
@@ -39,14 +41,40 @@
                 isEmpty = true;
                 color = Color.white;
                 state = 'empty';
+                if (isTop) {
+                    this.fillTile();
+                }
+                this.checkLinks();
+            },
+            linkTile: function (tile) {
+                links.push(tile);
+            },
+            checkLinks: function () {
+                var i, max = links.length;
+            
+                for (i = 0; i < max; i += 1) {
+                    if (links[i].getState() === 'filled' && state === 'empty') {
+                        this.fillTile();
+                        this.checkLinks();
+                    } else if (links[i].getState() === 'empty' && state === 'filled') {
+                        links[i].fillTile();
+                        links[i].checkLinks();
+                    }
+                }
             },
             draw: function (context) {
                 context.fillStyle = color;
                 context.fillRect(x, y, width, height);
                 context.strokeRect(x, y, width, height);
             },
+            setTop: function () {
+                isTop = true;
+            },
             getState: function () {
                 return state;
+            },
+            getLinks: function () {
+                return links;
             }
         };
     }
@@ -63,17 +91,43 @@
             h = 20,
             rowCount = rows,
             colCount = cols,
+            linkTiles = function (grid) {
+                for (r = 0; r < rows; r += 1) {
+                    for (c = 0; c < cols; c += 1) {
+                        var tile = grid[r][c];
+                        if (grid[r - 1] !== undefined) {
+                            tile.linkTile(grid[r - 1][c]);
+                        }
+                        
+                        if (grid[r + 1] !== undefined) {
+                            tile.linkTile(grid[r + 1][c]);
+                        }
+                        
+                        if (grid[r][c - 1] !== undefined) {
+                            tile.linkTile(grid[r][c - 1]);
+                        }
+                        
+                        if (grid[r][c + 1] !== undefined) {
+                            tile.linkTile(grid[r][c + 1]);
+                        }
+                    }
+                }
+            },
             generateTiles = function (rows, cols) {
                 var grid = [];
                 for (r = 0; r < rows; r += 1) {
                     grid[r] = [];
                     for (c = 0; c < cols; c += 1) {
                         grid[r][c] = new Tile(x, y, w, h);
+                        if (r === 0) {
+                            grid[r][c].setTop();
+                        }
                         x += 20;
                     }
                     x = 0;
                     y += 20;
                 }
+                linkTiles(grid);
                 return grid;
             },
             tiles = generateTiles(rows, cols),
@@ -102,18 +156,6 @@
             removeTile: function (tile) {
                 tile.pullTile();
                 tilesRemoved += 1;
-            },
-            traverse: function () {
-                for (r = 0; r < rowCount; r += 1) {
-                    for (c = 0; c < colCount; c += 1) {
-                        var tile = tiles[r][c],
-                            state = tile.getState();
-                        
-                        if (state === 'empty' && r === 0) {
-                            tile.fillTile();
-                        }
-                    }
-                }
             }
         };
     }
@@ -141,7 +183,6 @@
             
             if (currTile.getState() === 'blocked') {
                 grid.removeTile(currTile);
-                grid.traverse();
             }
             
             function render() {
@@ -158,7 +199,7 @@
             render();
         }
         
-        global.window.setInterval(update, 100);
+        global.window.setInterval(update, 500);
     }
     
     /*
