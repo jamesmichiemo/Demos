@@ -125,8 +125,9 @@
         function generateTiles(rows, cols) {
             var r, c,
                 x = vec2D.x,
-                y = vec2D.y,
-                tiles = [];     // Re-initialize the array.
+                y = vec2D.y;
+            
+            tiles = [];     // Re-initialize the array.
             
             for (r = 0; r < rows; r += 1) {
                 tiles[r] = [];
@@ -162,7 +163,7 @@
         function linkTiles() {
             var r, c,
                 tile = null;
-            
+
             for (r = 0; r < rowCount; r += 1) {
                 for (c = 0; c < colCount; c += 1) {
                     tile = tiles[r][c]; // Current Tile
